@@ -46,7 +46,7 @@
         min-width: 45%;
       }
       
-      /* Toggle Button Base Styling (Inactive State) */
+      
       .btn-intercept {
         background: rgba(239, 68, 68, 0.15);
         border: 1px solid rgba(239, 68, 68, 0.4);
@@ -56,14 +56,14 @@
         align-items: center;
       }
       
-      /* Active state styling */
+      
       .btn-intercept.active {
         background: rgba(16, 185, 129, 0.15);
         border: 1px solid rgba(16, 185, 129, 0.4);
         color: #34d399;
       }
       
-      /* Spacing between title and content */
+      
       .entry__title {
         margin-bottom: 15px;
         color: #93c5fd;
@@ -90,7 +90,7 @@
                 class="text-gray-300 hover:text-blue-400 px-3 py-2 rounded-md font-medium"
                 >Recent</a
               >
-              <!-- Toggle-style Intercept Button -->
+              <!--  Intercept Button -->
               <button id="interceptBtn" class="btn-intercept px-4 py-2 rounded-md font-medium flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
@@ -148,15 +148,15 @@
     
     <!-- Toggle Button JavaScript -->
     <script>
-      // Get the intercept button element and initialize state
+      
       const interceptBtn = document.getElementById("interceptBtn");
       let isInterceptActive = false;  // false means inactive by default
       
       interceptBtn.addEventListener("click", () => {
-        // Toggle the state
+        
         isInterceptActive = !isInterceptActive;
         
-        // Update button UI based on new state
+        
         if (isInterceptActive) {
           interceptBtn.classList.add("active");
           interceptBtn.querySelector("span").textContent = "Intercept: Active";
@@ -167,16 +167,7 @@
         
         console.log("Intercept is now:", isInterceptActive ? "Active" : "Inactive");
         
-        // Optional: Make a backend call here using fetch() if needed.
-        // Example:
-        // fetch('/toggle-intercept', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ state: isInterceptActive })
-        // })
-        // .then(response => response.json())
-        // .then(data => console.log("Server response", data))
-        // .catch(error => console.error("Error:", error));
+        
       });
     </script>
   </body>
