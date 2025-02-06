@@ -44,16 +44,15 @@ def handle_client_request(client_socket):
 
     host, port = extract_host_port_from_request(request.decode('utf-8'))
 
-    # Handle interception logic
     with intercept_lock:
         if intercept_status:
             print("\n[+] Intercepting request. Pausing execution...")
-            intercept_queue.append((host, port, request, client_socket))  # Store request with host & client socket
+            intercept_queue.append((host, port, request, client_socket))  
             
-            while intercept_status:  # Wait for user action via API
+            while intercept_status: 
                 time.sleep(0.5)
 
-    # ✅ Forward request after interception is disabled
+   
     forward_request(host, port, request, client_socket)
 
 
