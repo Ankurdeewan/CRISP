@@ -1,10 +1,37 @@
 import socket
 import threading
+import time
+
+intercept_status = False
+intercept_queue = []
+intercept_lock = threading.Lock
+
+def forward_request(host, port, request_data, client_socket):
+    try:
+        print(f"[+] Forwarding request to {host}:{port}")
+
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_socket.connect((host, port))
+        
+        server_socket.sendall(request_data)
+        response = server_socket.recv(4096)
+
+        if client_socket:
+            client_socket.sendall(response)
+
+        server_socket.close()
+    except Exception as e:
+        print(f"[!] Error forwarding request: {e}")
+
+
 
 def handle_client_request(client_socket):
+    global intercept_status, intercept_queue
+
     print("Received request:")
     request = b''
     client_socket.setblocking(False)
+
     while True:
         try:
             data = client_socket.recv(1024)
@@ -16,20 +43,19 @@ def handle_client_request(client_socket):
             break
 
     host, port = extract_host_port_from_request(request.decode('utf-8'))
-    destination_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    destination_socket.connect((host, port))
-    destination_socket.sendall(request)
-    print("Request forwarded to the destination")
 
-    while True:
-        response = destination_socket.recv(1024)
-        if not response:
-            break
-        print(response.decode('utf-8'), end='')
-        client_socket.send(response)
+    # Handle interception logic
+    with intercept_lock:
+        if intercept_status:
+            print("\n[+] Intercepting request. Pausing execution...")
+            intercept_queue.append((host, port, request, client_socket))  # Store request with host & client socket
+            
+            while intercept_status:  # Wait for user action via API
+                time.sleep(0.5)
 
-    destination_socket.close()
-    client_socket.close()
+    # ✅ Forward request after interception is disabled
+    forward_request(host, port, request, client_socket)
+
 
 def extract_host_port_from_request(request):
     host_string_start = request.find('Host: ') + len('Host: ')
