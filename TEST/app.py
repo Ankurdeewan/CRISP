@@ -2,6 +2,7 @@ import flask
 from flask import Flask, render_template
 import requests
 import sqlite3
+from proxy_server import forward_request
 
 
 app = Flask(__name__)

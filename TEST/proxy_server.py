@@ -5,6 +5,25 @@ import signal
 import sys
 import time
 
+
+def forward_request(host, port, request_data, client_socket):
+    
+    try:
+        print(f"[+] Forwarding request to {host}:{port}")
+
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_socket.connect((host, port))
+        
+        server_socket.sendall(request_data)
+        response = server_socket.recv(4096)
+
+        if client_socket:
+            client_socket.sendall(response)
+
+        server_socket.close()
+    except Exception as e:
+        print(f" Error forwarding request: {e}")
+
 def setup_database():
     database = sqlite3.connect('Captured_requests.db')
     cursor = database.cursor()
