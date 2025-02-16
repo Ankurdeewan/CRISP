@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRISP | Request Interceptor</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        }
+        
+        .card-hover {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+        }
+
+        .textarea-container {
+            height: calc(100vh - 400px);
+            min-height: 300px;
+        }
+
+        .toggle-button {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background-color: #ccc;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-button::before {
+            content: '';
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            background-color: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .toggle-button.on {
+            background-color: #4caf50;
+        }
+
+        .toggle-button.on::before {
+            transform: translateX(30px);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-black text-white">
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 glass-effect">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <span class="text-2xl font-bold text-blue-400">CRISP</span>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-center space-x-4">
+                        <a href="#" class="text-gray-300 hover:text-blue-400 px-3 py-2 rounded-md font-medium">Interceptor</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-100">Request Interceptor</h1>
+            <div id="interceptToggle" class="toggle-button"></div>
+        </div>
+        
+        <!-- Intercepted Request Display -->
+        <div class="glass-effect rounded-lg p-4 mb-8 textarea-container">
+            <textarea 
+                id="interceptedContent" 
+                class="w-full h-full bg-transparent text-white border-none resize-none focus:ring-0 focus:outline-none"
+                readonly
+                placeholder="Intercepted requests will appear here..."
+            ></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-center space-x-4">
+            <button id="dropButton" class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-medium transition-colors">
+                Drop
+            </button>
+            <button id="forwardButton" class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium transition-colors">
+                Forward
+            </button>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-blue-800 text-white">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">About</h3>
+                    <div class="space-y-2">
+                        <p>Project Wing 2025 Cyber Domain</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const interceptToggle = document.getElementById('interceptToggle');
+        const interceptedContent = document.getElementById('interceptedContent');
+        const dropButton = document.getElementById('dropButton');
+        const forwardButton = document.getElementById('forwardButton');
+        let isIntercepting = false;
+
+        const ws = new WebSocket('ws://localhost:8889');
+
+        ws.onopen = function() {
+            console.log('WebSocket connection established');
+        };
+
+        ws.onmessage = function(event) {
+            const message = JSON.parse(event.data);
+            
+            if (message.type === 'intercepted_request') {
+                // Display the intercepted request in the textarea
+                interceptedContent.value = message.data.request;
+                
+                // Enable the forward/drop buttons
+                dropButton.disabled = false;
+                forwardButton.disabled = false;
+            }
+        };
+
+        ws.onerror = function(error) {
+            console.error('WebSocket error:', error);
+        };
+
+        ws.onclose = function() {
+            console.log('WebSocket connection closed');
+        };
+
+        interceptToggle.addEventListener('click', () => {
+            isIntercepting = !isIntercepting;
+            interceptToggle.classList.toggle('on');
+            
+            // Send toggle state to server
+            ws.send(JSON.stringify({
+                command: 'toggle_intercept',
+                enabled: isIntercepting
+            }));
+        });
+
+        dropButton.addEventListener('click', () => {
+            ws.send(JSON.stringify({
+                command: 'drop'
+            }));
+            interceptedContent.value = '';
+            dropButton.disabled = true;
+            forwardButton.disabled = true;
+        });
+
+        forwardButton.addEventListener('click', () => {
+            ws.send(JSON.stringify({
+                command: 'forward'
+            }));
+            interceptedContent.value = '';
+            dropButton.disabled = true;
+            forwardButton.disabled = true;
+        });
+
+        // Disable buttons initially
+        dropButton.disabled = true;
+        forwardButton.disabled = true;
+    </script>
+</body>
+</html>

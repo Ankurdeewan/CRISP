@@ -1,22 +1,28 @@
-import flask 
 from flask import Flask, render_template
-import requests
+from flask_socketio import SocketIO
 import sqlite3
-from proxy_server import forward_request
-
 
 app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
-PORT = 8001
-
-@app.route('/', methods=['GET'])
+@app.route('/')
 def home():
     database = sqlite3.connect('./Captured_requests.db')
     cursor = database.cursor()
-    entries = cursor.execute('select * from all_requests order by Request_Number desc')
-    
+    entries = cursor.execute('SELECT * FROM all_requests ORDER BY Request_Number DESC')
     return render_template("home.html", entries=entries)
 
+@app.route('/intercept.html')
+def intercept():
+    return render_template("intercept.html")
 
-if __name__ == "__main__":
-    app.run(port=PORT)
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+
+if _name_ == "_main_":
+    socketio.run(app, port=8001)
